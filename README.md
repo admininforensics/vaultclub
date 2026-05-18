@@ -74,8 +74,9 @@ Production API + database are defined in [`render.yaml`](render.yaml). Use a **B
 | PostgreSQL | `vaultclub-db` | `vaultclub` DB/user; `DATABASE_URL` wired into the API |
 | Web service | `vaultclub-api` | `rootDir: backend`, Python 3.12, Gunicorn |
 | Build | `backend/build.sh` | `pip install` → `collectstatic` |
-| Pre-deploy | `preDeployCommand` in `render.yaml` | `migrate` (needs private-network DB access) |
-| Health check | `GET /api/v1/sports/` | Render uses this to mark the service live |
+| Pre-deploy | `preDeployCommand` in `render.yaml` | `migrate` (private-network DB) |
+| Start | `backend/start.sh` | `migrate` again, then Gunicorn |
+| Health check | `GET /api/v1/health/` | DB + schema ready; Render `healthCheckPath` |
 
 **Not in the blueprint (yet):** Next.js frontend, Celery, Redis. Run the frontend locally, on Vercel, or as a separate Render Web Service; point it at the API URL below.
 
@@ -99,9 +100,18 @@ Production API + database are defined in [`render.yaml`](render.yaml). Use a **B
 
 ### Verify
 
-- API: `https://<vaultclub-api-host>/api/v1/sports/` → JSON list (may be empty).
+- Health: `https://<vaultclub-api-host>/api/v1/health/` → `{"status":"ok"}` (503 = DB or migrations issue).
+- API: `https://<vaultclub-api-host>/api/v1/sports/` → JSON list (may be empty `[]`).
 - Admin: `https://<vaultclub-api-host>/admin/` → styled login (static files via WhiteNoise).
 - Stripe webhook (when enabled): `https://<vaultclub-api-host>/api/v1/webhooks/stripe/`
+
+### Troubleshooting deploy
+
+| Symptom | Likely cause | Fix |
+|---------|----------------|-----|
+| Build fails on `migrate`, `dpg-*-a` hostname | Build cannot reach internal DB | Migrations must **not** be in `build.sh` (use preDeploy + `start.sh`) |
+| Gunicorn up, `/api/v1/sports/` returns **500** | Tables missing or bad `DATABASE_URL` | Check deploy logs for `migrate`; open `/api/v1/health/` (shows `database_error` in DEBUG); ensure Blueprint synced `preDeployCommand` and `start.sh` |
+| Health check never passes | Same as above | Confirm `healthCheckPath` is `/api/v1/health/` |
 
 ### Production data (do not run `seed_demo`)
 

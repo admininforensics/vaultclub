@@ -4,8 +4,8 @@ Django settings for Vault Club.
 import os
 from datetime import timedelta
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
 
+import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -99,26 +99,22 @@ AUTH_USER_MODEL = "accounts.User"
 
 _database_url = os.environ.get("DATABASE_URL", "")
 if _database_url:
-    parsed = urlparse(_database_url)
-    query = parse_qs(parsed.query)
-    ssl_modes = query.get("sslmode", [])
-    sslmode = ssl_modes[0] if ssl_modes else None
-    host = parsed.hostname or "localhost"
-    if sslmode is None and (
-        host.endswith(".render.com")
-        or os.environ.get("DATABASE_SSLMODE", "").lower() == "require"
-    ):
-        sslmode = "require"
-    db_cfg: dict = {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": parsed.path.lstrip("/") or "vaultclub",
-        "USER": parsed.username or "vaultclub",
-        "PASSWORD": parsed.password or "",
-        "HOST": host,
-        "PORT": str(parsed.port or 5432),
-    }
-    if sslmode:
-        db_cfg["OPTIONS"] = {"sslmode": sslmode}
+    db_cfg = dj_database_url.parse(
+        _database_url,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+    host = db_cfg.get("HOST", "")
+    opts = dict(db_cfg.get("OPTIONS") or {})
+    # Render internal URLs (dpg-*-a) use private network — do not require SSL.
+    if host.startswith("dpg-") and not host.endswith(".render.com"):
+        opts.pop("sslmode", None)
+    elif host.endswith(".render.com") or os.environ.get("DATABASE_SSLMODE", "").lower() == "require":
+        opts["sslmode"] = "require"
+    if opts:
+        db_cfg["OPTIONS"] = opts
+    elif "OPTIONS" in db_cfg:
+        del db_cfg["OPTIONS"]
     DATABASES = {"default": db_cfg}
 else:
     DATABASES = {

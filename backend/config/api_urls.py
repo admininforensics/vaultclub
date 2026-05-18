@@ -1,4 +1,5 @@
 from django.urls import include, path
+from config.health import health
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -18,6 +19,7 @@ router.register("children", ChildViewSet, basename="child")
 router.register("sports", SportViewSet, basename="sport")
 
 urlpatterns = [
+    path("health/", health),
     path("auth/register/", RegisterView.as_view()),
     path("auth/login/", EmailTokenObtainPairView.as_view()),
     path("auth/token/refresh/", TokenRefreshView.as_view()),

@@ -19,12 +19,8 @@ services:
     buildCommand: ./build.sh
     # Build has no access to Render private-network DB hostnames (dpg-*-a).
     preDeployCommand: python manage.py migrate --no-input
-    startCommand: >-
-      gunicorn config.wsgi:application
-      --bind 0.0.0.0:$PORT
-      --workers ${WEB_CONCURRENCY:-2}
-      --timeout 120
-    healthCheckPath: /api/v1/sports/
+    startCommand: ./start.sh
+    healthCheckPath: /api/v1/health/
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.7"
