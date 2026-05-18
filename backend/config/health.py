@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import connection
 from django.http import JsonResponse
 
@@ -12,6 +11,5 @@ def health(request):
 
         Sport.objects.exists()
     except Exception as exc:
-        detail = str(exc) if settings.DEBUG else "database_error"
-        return JsonResponse({"status": "error", "detail": detail}, status=503)
+        return JsonResponse({"status": "error", "detail": str(exc)}, status=503)
     return JsonResponse({"status": "ok"})

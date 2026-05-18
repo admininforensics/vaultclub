@@ -75,7 +75,7 @@ Production API + database are defined in [`render.yaml`](render.yaml). Use a **B
 | Web service | `vaultclub-api` | `rootDir: backend`, Python 3.12, Gunicorn |
 | Build | `backend/build.sh` | `pip install` → `collectstatic` |
 | Pre-deploy | `preDeployCommand` in `render.yaml` | `migrate` (private-network DB) |
-| Start | `backend/start.sh` | `migrate` again, then Gunicorn |
+| Start | `startCommand` in `render.yaml` | `migrate` then Gunicorn (same as `backend/start.sh`) |
 | Health check | `GET /api/v1/health/` | DB + schema ready; Render `healthCheckPath` |
 
 **Not in the blueprint (yet):** Next.js frontend, Celery, Redis. Run the frontend locally, on Vercel, or as a separate Render Web Service; point it at the API URL below.
@@ -105,13 +105,47 @@ Production API + database are defined in [`render.yaml`](render.yaml). Use a **B
 - Admin: `https://<vaultclub-api-host>/admin/` → styled login (static files via WhiteNoise).
 - Stripe webhook (when enabled): `https://<vaultclub-api-host>/api/v1/webhooks/stripe/`
 
+### Sync `render.yaml` to the live service (required after git changes)
+
+Render **does not always** update an existing web service when you push `render.yaml`. If deploy logs show:
+
+```text
+==> Running 'gunicorn config.wsgi:application --bind 0.0.0.0:$PORT ...'
+```
+
+(with **no** `migrate` before Gunicorn), the dashboard is still on an **old** start command. Fix it one of these ways:
+
+**A — Blueprint sync (preferred)**  
+**Blueprints** → your instance → **Sync** / **Manual sync** → apply changes → redeploy.
+
+**B — Set commands in the dashboard (fastest)**  
+**vaultclub-api** → **Settings**, then:
+
+| Setting | Value |
+|---------|--------|
+| **Pre-Deploy Command** | `python manage.py migrate --no-input` |
+| **Start Command** | `python manage.py migrate --no-input && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers ${WEB_CONCURRENCY:-2} --timeout 120` |
+| **Health Check Path** | `/api/v1/health/` |
+
+Save and **Manual Deploy**. The log should show `Running 'python manage.py migrate...` before Gunicorn.
+
+**C — One-off fix in Shell (immediate)**  
+**vaultclub-api** → **Shell**:
+
+```bash
+python manage.py migrate --no-input
+```
+
+Then hit `/api/v1/health/` and `/api/v1/sports/` (expect `[]` if no sports yet).
+
 ### Troubleshooting deploy
 
 | Symptom | Likely cause | Fix |
 |---------|----------------|-----|
-| Build fails on `migrate`, `dpg-*-a` hostname | Build cannot reach internal DB | Migrations must **not** be in `build.sh` (use preDeploy + `start.sh`) |
-| Gunicorn up, `/api/v1/sports/` returns **500** | Tables missing or bad `DATABASE_URL` | Check deploy logs for `migrate`; open `/api/v1/health/` (shows `database_error` in DEBUG); ensure Blueprint synced `preDeployCommand` and `start.sh` |
-| Health check never passes | Same as above | Confirm `healthCheckPath` is `/api/v1/health/` |
+| Log shows only `gunicorn ...` at start | Dashboard not synced with `render.yaml` | See **Sync render.yaml** above |
+| Build fails on `migrate`, `dpg-*-a` hostname | Build cannot reach internal DB | Keep `migrate` out of `build.sh`; use preDeploy + start command |
+| Gunicorn up, `/api/v1/sports/` returns **500** | Migrations not applied or DB URL wrong | Run migrate in Shell; open `/api/v1/health/` for `detail`; check **Logs** for `django.request` traceback |
+| Health check never passes | Wrong path or DB not ready | Set health path to `/api/v1/health/` |
 
 ### Production data (do not run `seed_demo`)
 
