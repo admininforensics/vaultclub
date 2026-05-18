@@ -63,61 +63,93 @@ Open `http://localhost:3000`.
 
 ---
 
-## Deploy API on Render (Blueprint)
+## Deploy on Render (`render.yaml`)
 
-The repo includes [`render.yaml`](render.yaml) for a **Blueprint** deploy: **PostgreSQL + Django web service (Gunicorn)**. Celery/Redis are **not** part of the blueprint yet (MVP first).
+Production API + database are defined in [`render.yaml`](render.yaml). Use a **Blueprint** — do not create separate Postgres/Web Service resources by hand unless you are attaching to an existing database (see below).
 
-### Steps
+### What the blueprint creates
 
-1. Push this repo to GitHub/GitLab.
-2. In [Render](https://dashboard.render.com/) → **Blueprints** → **New Blueprint Instance** → connect the repo.
-3. Render creates `vaultclub-db` and `vaultclub-api` from `render.yaml`.
-4. After the first deploy, open **vaultclub-api** → **Environment** and set:
-   - `CORS_ALLOWED_ORIGINS` — your frontend origin(s), e.g. `https://your-app.vercel.app`
-   - `FRONTEND_URL` — same base URL (Stripe redirects)
-   - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — when testing payments
-   - `ALLOWED_HOSTS` — only if you use a custom domain (Render’s `*.onrender.com` host is added automatically)
-5. **Production data (do not run `seed_demo`):**
-   ```bash
-   # One-off shell on Render, or locally with production DATABASE_URL:
-   python manage.py createsuperuser
-   ```
-   Then use **Django admin** (`https://<your-api>.onrender.com/admin/`) to add sports, venues, coaches, schedule rules, and run **Generate occurrences** via admin or:
-   ```bash
-   python manage.py generate_occurrences --weeks=8
-   ```
+| Resource | Name | Notes |
+|----------|------|--------|
+| PostgreSQL | `vaultclub-db` | `vaultclub` DB/user; `DATABASE_URL` wired into the API |
+| Web service | `vaultclub-api` | `rootDir: backend`, Python 3.12, Gunicorn |
+| Build | `backend/build.sh` | `pip install` → `collectstatic` |
+| Pre-deploy | `preDeployCommand` in `render.yaml` | `migrate` (needs private-network DB access) |
+| Health check | `GET /api/v1/sports/` | Render uses this to mark the service live |
 
-### Connect an existing Render Postgres
+**Not in the blueprint (yet):** Next.js frontend, Celery, Redis. Run the frontend locally, on Vercel, or as a separate Render Web Service; point it at the API URL below.
 
-If you already created a database manually:
+### Deploy steps
 
-1. **vaultclub-api** → Environment → set `DATABASE_URL` to the **Internal Database URL** (same region) or External URL.
-2. Redeploy, or run `python manage.py migrate` from the Render shell.
+1. Push this repo to GitHub or GitLab.
+2. [Render Dashboard](https://dashboard.render.com/) → **Blueprints** → **New Blueprint Instance** → select the repo.
+3. Confirm the spec from `render.yaml` (`vaultclub-db` + `vaultclub-api`) and apply. Migrations run in **preDeploy** (not during build — Render’s build network cannot resolve internal `dpg-*-a` hostnames).
+4. When **vaultclub-api** is live, note its URL, e.g. `https://vaultclub-api.onrender.com`.
+5. Open **vaultclub-api** → **Environment** and set the variables marked `sync: false` in `render.yaml` (Render prompts for these on first blueprint sync, or you add them after deploy):
 
-### Local API against Render Postgres
+   | Variable | Example | Purpose |
+   |----------|---------|---------|
+   | `CORS_ALLOWED_ORIGINS` | `https://your-frontend.onrender.com` | Browser API access (comma-separated if multiple) |
+   | `FRONTEND_URL` | same as above | Stripe Checkout return URLs |
+   | `STRIPE_SECRET_KEY` | `sk_live_...` / `sk_test_...` | Payments (optional until checkout) |
+   | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Webhook signature verification |
+   | `ALLOWED_HOSTS` | `api.yourdomain.com` | **Optional** — extra custom domains only; `RENDER_EXTERNAL_HOSTNAME` is added in code |
 
-Use the **External Database URL** in `backend/.env`, then:
+6. Redeploy **vaultclub-api** after changing environment variables.
+
+### Verify
+
+- API: `https://<vaultclub-api-host>/api/v1/sports/` → JSON list (may be empty).
+- Admin: `https://<vaultclub-api-host>/admin/` → styled login (static files via WhiteNoise).
+- Stripe webhook (when enabled): `https://<vaultclub-api-host>/api/v1/webhooks/stripe/`
+
+### Production data (do not run `seed_demo`)
+
+From **vaultclub-api** → **Shell** (or locally with the DB **External** URL in `DATABASE_URL`):
 
 ```bash
-cd backend
-python manage.py migrate
 python manage.py createsuperuser
+python manage.py generate_occurrences --weeks=8
 ```
 
-Do **not** run `seed_demo` against production.
+Use **Django admin** to create sports, venues, coaches, and schedule rules. `seed_demo` is for local dev only.
+
+### Frontend against the deployed API
+
+Wherever you host Next.js (`frontend/`), set at build time:
+
+```env
+NEXT_PUBLIC_API_URL=https://<vaultclub-api-host>/api/v1
+```
+
+Ensure that origin is listed in `CORS_ALLOWED_ORIGINS` on the API.
+
+### Alternate: existing Render Postgres
+
+If you already have a Postgres instance and do not want a new `vaultclub-db`:
+
+1. Deploy or update the blueprint, then on **vaultclub-api** → **Environment** replace `DATABASE_URL` with your **Internal Database URL** (API and DB in the same region).
+2. Redeploy (migrations run on pre-deploy) or run `python manage.py migrate` in the Shell.
+
+### Local machine → Render Postgres only
+
+Use the **External Database URL** from the Render DB dashboard in `backend/.env`, then `migrate` / `createsuperuser` as above. Do **not** run `seed_demo` against production.
 
 ---
 
 ## Environment reference
 
-| Variable | Local | Render |
-|----------|-------|--------|
-| `DATABASE_URL` | Docker or SQLite (unset) | From blueprint DB or manual |
-| `SECRET_KEY` | `.env` | Auto-generated in blueprint |
+| Variable | Local | Render (`render.yaml`) |
+|----------|-------|-------------------------|
+| `DATABASE_URL` | Docker or SQLite (unset) | Auto from `vaultclub-db` |
+| `SECRET_KEY` | `.env` | Auto-generated (`generateValue: true`) |
 | `DEBUG` | `True` | `False` |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | Your deployed frontend |
-| `FRONTEND_URL` | `http://localhost:3000` | Your deployed frontend |
-| Stripe keys | optional | required for checkout |
+| `PYTHON_VERSION` | — | `3.12.7` |
+| `WEB_CONCURRENCY` | — | `2` (Gunicorn workers) |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | Set in Dashboard after deploy |
+| `FRONTEND_URL` | `http://localhost:3000` | Set in Dashboard after deploy |
+| Stripe keys | optional | Set when using checkout |
+| `ALLOWED_HOSTS` | `localhost,...` | Optional extras; `*.onrender.com` host auto-added |
 
 ---
 

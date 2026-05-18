@@ -17,6 +17,8 @@ services:
     rootDir: backend
     plan: free
     buildCommand: ./build.sh
+    # Build has no access to Render private-network DB hostnames (dpg-*-a).
+    preDeployCommand: python manage.py migrate --no-input
     startCommand: >-
       gunicorn config.wsgi:application
       --bind 0.0.0.0:$PORT
