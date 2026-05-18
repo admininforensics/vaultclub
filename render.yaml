@@ -1,0 +1,50 @@
+# Vault Club — Render Blueprint (MVP)
+# Deploy: Dashboard → Blueprints → New Blueprint Instance → connect this repo.
+#
+# MVP includes: PostgreSQL + Django API (Gunicorn).
+# Celery + Redis are deferred (see docker-compose.yml for local Redis only).
+
+databases:
+  - name: vaultclub-db
+    plan: free
+    databaseName: vaultclub
+    user: vaultclub
+
+services:
+  - type: web
+    name: vaultclub-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: ./build.sh
+    startCommand: >-
+      gunicorn config.wsgi:application
+      --bind 0.0.0.0:$PORT
+      --workers ${WEB_CONCURRENCY:-2}
+      --timeout 120
+    healthCheckPath: /api/v1/sports/
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vaultclub-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      # Set after deploy (Dashboard → vaultclub-api → Environment):
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # Optional comma-separated extra hosts (RENDER_EXTERNAL_HOSTNAME is added automatically)
+      - key: ALLOWED_HOSTS
+        sync: false
