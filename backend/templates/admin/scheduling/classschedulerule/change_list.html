@@ -1,0 +1,15 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools %}
+  <div class="object-tools">
+    <form action="{% url 'admin:scheduling_classschedulerule_generate_occurrences' %}?weeks=8" method="post" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="button" style="margin-right:8px;">
+        {% trans "Generate occurrences (8 weeks)" %}
+      </button>
+    </form>
+    {{ block.super }}
+  </div>
+{% endblock %}
+

@@ -55,10 +55,10 @@ export default async function SchedulePage({
           </p>
         </div>
         <Link
-          href="/sports"
+          href="/programs"
           className="text-sm font-medium text-emerald-300 hover:text-emerald-200"
         >
-          Change sport filter
+          Browse programmes
         </Link>
       </div>
 

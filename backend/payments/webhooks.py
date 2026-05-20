@@ -40,10 +40,8 @@ def stripe_webhook(request):
 def _handle_checkout_completed(session: dict, event_id: str):
     stripe.api_key = settings.STRIPE_SECRET_KEY
     metadata = session.get("metadata") or {}
-    booking_id = metadata.get("booking_id")
     payment_id = metadata.get("payment_id")
-
-    if not booking_id or not payment_id:
+    if not payment_id:
         return
 
     payment = Payment.objects.select_for_update().get(pk=payment_id)
@@ -53,7 +51,9 @@ def _handle_checkout_completed(session: dict, event_id: str):
     if payment.metadata_json.get("stripe_event_id") == event_id:
         return
 
-    confirm_booking_after_payment(booking_id=str(booking_id), payment=payment)
+    booking_id = metadata.get("booking_id")
+    if booking_id:
+        confirm_booking_after_payment(booking_id=str(booking_id), payment=payment)
 
     payment.status = Payment.Status.PAID
     payment.paid_at = timezone.now()
@@ -61,5 +61,6 @@ def _handle_checkout_completed(session: dict, event_id: str):
         **payment.metadata_json,
         "stripe_event_id": event_id,
         "checkout_session": session.get("id"),
+        "shop_product_id": metadata.get("shop_product_id"),
     }
     payment.save(update_fields=["status", "paid_at", "metadata_json"])

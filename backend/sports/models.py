@@ -4,8 +4,60 @@ from django.conf import settings
 from django.db import models
 
 
-class Sport(models.Model):
+class ProgramCategory(models.TextChoices):
+    SPORTS = "sports", "Sports"
+    MUSIC = "music", "Music lessons"
+    TUTORING = "tutoring", "Tutoring"
+
+
+class ProgramSubcategory(models.Model):
+    """Grouping within a programme category (e.g. Rugby under Sports, Piano under Music)."""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    category = models.CharField(
+        max_length=20,
+        choices=ProgramCategory.choices,
+        db_index=True,
+    )
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255)
+    display_order = models.PositiveIntegerField(default=0)
+    active = models.BooleanField(default=True, db_index=True)
+
+    class Meta:
+        ordering = ["display_order", "name"]
+        verbose_name = "programme subcategory"
+        verbose_name_plural = "programme subcategories"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category", "slug"],
+                name="unique_subcategory_slug_per_category",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.get_category_display()}: {self.name}"
+
+
+class Sport(models.Model):
+    """Bookable programme (sport, music instrument, tutoring subject, etc.)."""
+
+    Category = ProgramCategory
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    category = models.CharField(
+        max_length=20,
+        choices=ProgramCategory.choices,
+        default=ProgramCategory.SPORTS,
+        db_index=True,
+    )
+    subcategory = models.ForeignKey(
+        ProgramSubcategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="programmes",
+    )
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     short_description = models.CharField(max_length=500, blank=True)
@@ -18,6 +70,8 @@ class Sport(models.Model):
 
     class Meta:
         ordering = ["display_order", "name"]
+        verbose_name = "programme"
+        verbose_name_plural = "programmes"
 
     def __str__(self) -> str:
         return self.name

@@ -32,6 +32,7 @@ def expire_stale_pending_bookings(occurrence: ClassOccurrence | None = None) -> 
 
 def count_reserved_spots(occurrence: ClassOccurrence, now=None) -> int:
     now = now or timezone.now()
+    hold = timedelta(minutes=settings.BOOKING_PAYMENT_HOLD_MINUTES)
     expire_stale_pending_bookings(occurrence)
     return (
         Booking.objects.filter(occurrence=occurrence)

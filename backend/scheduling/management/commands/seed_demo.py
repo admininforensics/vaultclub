@@ -21,6 +21,7 @@ class Command(BaseCommand):
             return
 
         sport = Sport.objects.create(
+            category=Sport.Category.SPORTS,
             name="Karate",
             slug="karate",
             short_description="Beginner-friendly karate fundamentals.",

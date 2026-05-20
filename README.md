@@ -1,6 +1,6 @@
 # Vault Club
 
-Monorepo for the **Vault Club** kids sports booking product: Django + DRF + PostgreSQL backend, Next.js + TypeScript + Tailwind frontend.
+Monorepo for **Vault Club** — kids programmes across **sports, music lessons, and tutoring**: Django + DRF + PostgreSQL backend, Next.js + TypeScript + Tailwind frontend.
 
 ## Quick start (local)
 
@@ -26,7 +26,7 @@ DATABASE_URL=postgresql://vaultclub:vaultclub@127.0.0.1:5432/vaultclub
 
 ```bash
 cp backend/.env.example backend/.env
-cd backend && python manage.py migrate && python manage.py seed_demo
+cd backend && python manage.py migrate && python manage.py seed_demo && python manage.py seed_subcategories
 ```
 
 Without Docker and without `DATABASE_URL`, the API uses **SQLite** automatically.

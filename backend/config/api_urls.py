@@ -12,11 +12,12 @@ from scheduling.views import (
     ScheduleListView,
     ScheduleOccurrenceDetailView,
 )
-from sports.views import SportViewSet
+from sports.views import ProgramSubcategoryViewSet, SportViewSet
 
 router = DefaultRouter()
 router.register("children", ChildViewSet, basename="child")
 router.register("sports", SportViewSet, basename="sport")
+router.register("subcategories", ProgramSubcategoryViewSet, basename="subcategory")
 
 urlpatterns = [
     path("health/", health),
@@ -32,6 +33,7 @@ urlpatterns = [
     path("bookings/", BookingCollectionView.as_view()),
     path("bookings/<uuid:booking_id>/", BookingDetailView.as_view()),
     path("bookings/<uuid:booking_id>/cancel/", BookingCancelView.as_view()),
+    path("shop/", include("shop.urls")),
     path("webhooks/stripe/", stripe_webhook),
     path("coach/classes/", CoachClassesView.as_view()),
     path(

@@ -8,6 +8,7 @@ class PaymentAdmin(admin.ModelAdmin):
     list_display = ("id", "parent", "amount", "currency", "status", "created_at")
     list_filter = ("status", "provider")
     search_fields = ("provider_checkout_session_id", "parent__user__email")
+    date_hierarchy = "created_at"
 
 
 @admin.register(PackageProduct)

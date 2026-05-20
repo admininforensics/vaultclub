@@ -1,18 +1,11 @@
 import Link from "next/link";
+import { PROGRAM_CATEGORIES } from "@/lib/categories";
 
-const sportsPreview = [
-  "Artistic gymnastics",
-  "Ninja course",
-  "Karate",
-  "Parkour",
-  "Dance",
-  "Football skills",
-  "Basketball",
-  "Swimming",
-  "Tennis",
-  "Athletics",
-  "Multi-sport sampler",
-];
+const sportsPreview = ["Rugby", "Tennis", "Cricket", "Hockey", "Track"];
+
+const musicPreview = ["Piano", "Guitar", "Singing", "Drums", "Bass", "Flute"];
+
+const tutoringPreview = ["Math", "English", "Afrikaans", "Science"];
 
 export default function HomePage() {
   return (
@@ -24,11 +17,11 @@ export default function HomePage() {
             Vault Club
           </p>
           <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
-            Sports for kids who go all-in.
+            Sports, music and tutoring — one club for your kids.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-slate-300">
-            One club, eleven sports, one weekly rhythm. Register your children,
-            browse the calendar, reserve a spot, and pay securely online.
+            Register your children, browse programmes by category, reserve a spot
+            on the weekly calendar, and pay securely online.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
@@ -38,31 +31,70 @@ export default function HomePage() {
               Register your kid
             </Link>
             <Link
-              href="/sports"
+              href="/programs"
               className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white hover:border-white/40"
             >
-              Browse sports
+              Browse programmes
+            </Link>
+            <Link
+              href="/schedule"
+              className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white hover:border-white/40"
+            >
+              View calendar
             </Link>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="text-2xl font-semibold">Pick their sport</h2>
-        <p className="mt-2 max-w-2xl text-slate-400">
-          Multi-sport kids club with age-aware classes and coaches who know how
-          to meet children where they are.
-        </p>
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {sportsPreview.map((name) => (
-            <li
-              key={name}
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200"
+        <h2 className="text-2xl font-semibold">Three ways to learn</h2>
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {PROGRAM_CATEGORIES.map((c) => (
+            <Link
+              key={c.key}
+              href={c.href}
+              className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-emerald-400/40"
             >
-              {name}
-            </li>
+              <h3 className="text-lg font-semibold">{c.label}</h3>
+              <p className="mt-2 text-sm text-slate-400">{c.tagline}</p>
+            </Link>
           ))}
-        </ul>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <div className="grid gap-10 md:grid-cols-3">
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
+              Sports
+            </h3>
+            <ul className="mt-4 space-y-2 text-sm text-slate-300">
+              {sportsPreview.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-violet-300">
+              Music
+            </h3>
+            <ul className="mt-4 space-y-2 text-sm text-slate-300">
+              {musicPreview.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-amber-300">
+              Tutoring
+            </h3>
+            <ul className="mt-4 space-y-2 text-sm text-slate-300">
+              {tutoringPreview.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
       <section className="border-y border-white/10 bg-white/[0.03]">
@@ -96,9 +128,9 @@ export default function HomePage() {
             <span className="text-xs font-semibold uppercase text-emerald-300">
               Step 1
             </span>
-            <p className="mt-2 font-medium">Pick a class</p>
+            <p className="mt-2 font-medium">Pick a programme</p>
             <p className="mt-2 text-sm text-slate-400">
-              Filter by age and sport, then choose a session that fits your week.
+              Sports, music or tutoring — filter by age and book the right session.
             </p>
           </li>
           <li className="rounded-2xl border border-white/10 p-6">

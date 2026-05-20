@@ -1,11 +1,21 @@
 from django.contrib import admin
 
-from sports.models import ActivityClass, Coach, Sport, Venue
+from sports.models import ActivityClass, Coach, ProgramSubcategory, Sport, Venue
+
+
+@admin.register(ProgramSubcategory)
+class ProgramSubcategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "slug", "active", "display_order")
+    list_filter = ("category", "active")
+    list_editable = ("display_order", "active")
+    prepopulated_fields = {"slug": ("name",)}
+    search_fields = ("name",)
 
 
 @admin.register(Sport)
 class SportAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "active", "display_order")
+    list_display = ("name", "category", "subcategory", "slug", "active", "display_order")
+    list_filter = ("category", "subcategory", "active")
     list_editable = ("display_order", "active")
     prepopulated_fields = {"slug": ("name",)}
     search_fields = ("name",)

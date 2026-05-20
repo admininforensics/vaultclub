@@ -8,8 +8,14 @@ export function SiteNav() {
           Vault Club
         </Link>
         <nav className="flex flex-wrap items-center gap-4 text-sm text-slate-300">
-          <Link href="/sports" className="hover:text-white">
+          <Link href="/programs/sports" className="hover:text-white">
             Sports
+          </Link>
+          <Link href="/programs/music" className="hover:text-white">
+            Music
+          </Link>
+          <Link href="/programs/tutoring" className="hover:text-white">
+            Tutoring
           </Link>
           <Link href="/schedule" className="hover:text-white">
             Schedule
@@ -36,7 +42,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-white/10 bg-slate-950 py-10 text-sm text-slate-400">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 md:flex-row md:items-center md:justify-between">
-        <p>Vault Club — sports for kids who go all-in.</p>
+        <p>Vault Club — sports, music and tutoring for kids who go all-in.</p>
         <p>Questions? Reach us on WhatsApp after you register.</p>
       </div>
     </footer>
