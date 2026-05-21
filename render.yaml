@@ -68,11 +68,12 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
-      - key: VAULTCLUB_API_HOST
+      # Public URL only — property: host is a private IP and breaks SSR fetch on /schedule.
+      - key: VAULTCLUB_API_PUBLIC_URL
         fromService:
           type: web
           name: vaultclub-api
-          property: host
-      # Override manually if needed (must include /api/v1); build.sh sets this from VAULTCLUB_API_HOST.
+          envVarKey: RENDER_EXTERNAL_URL
+      # Or set manually, e.g. https://vaultclub-api.onrender.com/api/v1
       - key: NEXT_PUBLIC_API_URL
         sync: false

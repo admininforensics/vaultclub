@@ -4,10 +4,16 @@ set -o errexit
 
 cd "$(dirname "$0")"
 
-if [[ -n "${VAULTCLUB_API_HOST:-}" ]]; then
+if [[ -n "${NEXT_PUBLIC_API_URL:-}" ]]; then
+  :
+elif [[ -n "${VAULTCLUB_API_PUBLIC_URL:-}" ]]; then
+  base="${VAULTCLUB_API_PUBLIC_URL%/}"
+  export NEXT_PUBLIC_API_URL="${base}/api/v1"
+elif [[ -n "${VAULTCLUB_API_HOST:-}" ]]; then
+  # Legacy: host may be a private IP on Render — prefer VAULTCLUB_API_PUBLIC_URL.
   export NEXT_PUBLIC_API_URL="https://${VAULTCLUB_API_HOST}/api/v1"
-elif [[ -z "${NEXT_PUBLIC_API_URL:-}" ]]; then
-  echo "WARN: Set VAULTCLUB_API_HOST or NEXT_PUBLIC_API_URL before build." >&2
+else
+  echo "WARN: Set VAULTCLUB_API_PUBLIC_URL or NEXT_PUBLIC_API_URL before build." >&2
 fi
 
 echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-<unset>}"

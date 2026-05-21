@@ -78,7 +78,7 @@ Production API + database are defined in [`render.yaml`](render.yaml). Use a **B
 | Start | `startCommand` in `render.yaml` | `migrate` then Gunicorn (same as `backend/start.sh`) |
 | Health check | `GET /api/v1/health/` | DB + schema ready; Render `healthCheckPath` |
 | Web service | `vaultclub-web` | Next.js (`frontend/`), public site URL |
-| Frontend build | `frontend/build.sh` | Sets `NEXT_PUBLIC_API_URL` from `vaultclub-api` hostname |
+| Frontend build | `frontend/build.sh` | Sets `NEXT_PUBLIC_API_URL` from API **public** URL (`RENDER_EXTERNAL_URL`), not private IP |
 
 **Not in the blueprint (yet):** Celery, Redis.
 
@@ -183,7 +183,7 @@ Use **Django admin** to create sports, venues, coaches, and schedule rules. `see
 
 ### Frontend on Render (manual, if not using Blueprint sync)
 
-**New Web Service** → connect repo → **Root Directory** `frontend` → **Build** `./build.sh` → **Start** `npm start` → add env `VAULTCLUB_API_HOST` = hostname of **vaultclub-api** (no `https://`). Then set API `CORS_ALLOWED_ORIGINS` and `FRONTEND_URL` to this service’s `https://…onrender.com` URL.
+**New Web Service** → connect repo → **Root Directory** `frontend` → **Build** `./build.sh` → **Start** `npm start` → add env `VAULTCLUB_API_PUBLIC_URL` = `https://vaultclub-api.onrender.com` (full public URL, not the private IP from Render’s internal host). Then set API `CORS_ALLOWED_ORIGINS` and `FRONTEND_URL` to this service’s `https://…onrender.com` URL.
 
 ### Alternate: existing Render Postgres
 
