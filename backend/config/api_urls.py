@@ -34,6 +34,7 @@ urlpatterns = [
     path("bookings/<uuid:booking_id>/", BookingDetailView.as_view()),
     path("bookings/<uuid:booking_id>/cancel/", BookingCancelView.as_view()),
     path("shop/", include("shop.urls")),
+    path("staff/", include("staff.urls")),
     path("webhooks/stripe/", stripe_webhook),
     path("coach/classes/", CoachClassesView.as_view()),
     path(

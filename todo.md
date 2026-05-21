@@ -74,6 +74,8 @@ Track progress for deployment, local dev, programmes, shop, admin ops, booking f
 
 ## 1) Admin operations
 
+- [x] Staff portal `/staff` (programmes, classes, venues, schedule rules, generate occurrences) — admin role only
+- [x] `grant_club_admin` management command
 - [x] Admin button: **Generate occurrences (8 weeks)** on Class schedule rules list
 - [x] Admin templates `DIRS` fixed (button visible)
 - [x] Occurrences admin: coach column, `raw_id_fields`

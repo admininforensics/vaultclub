@@ -1,11 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch, setTokens } from "@/lib/api";
+import { fetchMe, isClubAdmin } from "@/lib/auth";
 
-export default function AuthPage() {
+async function redirectAfterLogin(
+  router: { push: (path: string) => void },
+  next: string | null
+) {
+  const me = await fetchMe();
+  if (next && next.startsWith("/") && isClubAdmin(me.user.role)) {
+    router.push(next);
+    return;
+  }
+  if (isClubAdmin(me.user.role)) {
+    router.push("/staff");
+    return;
+  }
+  router.push("/dashboard");
+}
+
+function AuthPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
   const [mode, setMode] = useState<"signin" | "register">("signin");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,7 +62,7 @@ export default function AuthPage() {
       }
     );
     setTokens(tokens.access, tokens.refresh);
-    router.push("/dashboard");
+    await redirectAfterLogin(router, next);
   }
 
   async function onSignIn(e: React.FormEvent<HTMLFormElement>) {
@@ -63,7 +82,7 @@ export default function AuthPage() {
         }
       );
       setTokens(tokens.access, tokens.refresh);
-      router.push("/dashboard");
+      await redirectAfterLogin(router, next);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Sign in failed");
     } finally {
@@ -73,9 +92,14 @@ export default function AuthPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16">
-      <h1 className="text-3xl font-semibold">Parent account</h1>
+      <h1 className="text-3xl font-semibold">Sign in</h1>
       <p className="mt-2 text-slate-400">
-        Create an account to add children and book classes.
+        Parents register to book classes. Club managers with an admin role are
+        sent to the{" "}
+        <a href="/staff" className="text-amber-300 hover:underline">
+          staff portal
+        </a>{" "}
+        after sign-in.
       </p>
 
       <div className="mt-8 flex gap-2 rounded-full border border-white/10 bg-white/5 p-1 text-sm">
@@ -192,5 +216,13 @@ export default function AuthPage() {
         </form>
       )}
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="px-4 py-16 text-slate-400">Loading…</div>}>
+      <AuthPageInner />
+    </Suspense>
   );
 }

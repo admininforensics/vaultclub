@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthNavButton } from "@/components/AuthNavButton";
+import { StaffNavLink } from "@/components/StaffNavLink";
 
 export function SiteNav() {
   return (
@@ -27,6 +28,7 @@ export function SiteNav() {
           <Link href="/dashboard" className="hover:text-white">
             My kids
           </Link>
+          <StaffNavLink />
           <AuthNavButton />
         </nav>
       </div>

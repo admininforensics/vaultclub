@@ -179,7 +179,18 @@ python manage.py createsuperuser
 python manage.py generate_occurrences --weeks=8
 ```
 
-Use **Django admin** to create sports, venues, coaches, and schedule rules. `seed_demo` is for local dev only.
+Use **`/staff`** on the public site for programmes and schedule (see below), or Django admin. `seed_demo` is for local dev only.
+
+### Club managers (`/staff` on the website)
+
+Managers sign in at `/auth` with role **admin** or **super_admin**, then use **`/staff`** (nav link **Staff**).
+
+```bash
+# After colleague has an account (register or createsuperuser):
+python manage.py grant_club_admin colleague@example.com --django-admin
+```
+
+Flow: **Programmes** → **Activity classes** → **Venues** → **Schedule rules** → **Generate 8 weeks of sessions**. Staff APIs: `/api/v1/staff/*` (JWT required; parents/coaches get 403).
 
 ### Frontend on Render (manual, if not using Blueprint sync)
 
@@ -222,7 +233,7 @@ Use the **External Database URL** from the Render DB dashboard in `backend/.env`
 ## Key flows
 
 - **Parent**: register → add children → browse `/schedule` → book → Stripe Checkout → booking **confirmed** only after Stripe webhook.
-- **Admin**: Django admin for sports, venues, coaches, schedule rules, occurrences, bookings, payments.
+- **Managers**: `/staff` portal (programmes, schedule) for admin role; Django admin for advanced edits.
 - **Coach**: `GET /api/v1/coach/classes/`, roster and attendance under `/api/v1/coach/classes/...`.
 
 ## Docs
