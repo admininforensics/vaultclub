@@ -1,148 +1,200 @@
-# Vault Club
-
-Monorepo for **Vault Club** — kids programmes across **sports, music lessons, and tutoring**: Django + DRF + PostgreSQL backend, Next.js + TypeScript + Tailwind frontend.
-
-## Quick start (local)
-
-### 1. Database with Docker (local Postgres)
-
-From the **repo root** (where `docker-compose.yml` lives):
-
-```bash
-# Postgres only (MVP — Redis is optional, profile `celery`, not needed yet)
-docker compose up -d db
-
-docker compose logs -f db
-docker compose stop
-docker compose down
-docker compose down -v   # wipes DB volume
+```
+██╗   ██╗ █████╗ ██╗   ██╗██╗  ████████╗     ██████╗██╗     ██╗   ██╗██████╗
+██║   ██║██╔══██╗██║   ██║██║  ╚══██╔══╝    ██╔════╝██║     ██║   ██║██╔══██╗
+██║   ██║███████║██║   ██║██║     ██║       ██║     ██║     ██║   ██║██████╔╝
+╚██╗ ██╔╝██╔══██║██║   ██║██║     ██║       ██║     ██║     ██║   ██║██╔══██╗
+ ╚████╔╝ ██║  ██║╚██████╔╝███████╗██║       ╚██████╗███████╗╚██████╔╝██████╔╝
+  ╚═══╝  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝        ╚═════╝╚══════╝ ╚═════╝ ╚═════╝
 ```
 
-Connection string for `backend/.env`:
+**Kids programmes** — sports, music lessons, tutoring.
+
+**Stack:** Django + DRF + PostgreSQL · Next.js + TypeScript + Tailwind
+
+**Repo layout:** `backend/` · `frontend/` · `render.yaml` · `docker-compose.yml`
+
+---
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃   ▓▓▓  LOCAL DEVELOPMENT  ▓▓▓                                                ┃
+┃        Run API + site on your machine                                        ┃
+┃                                                                              ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
+
+### Environment files (create once)
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.local.example frontend/.env.local
+```
+
+Templates are in git; real `.env` files are gitignored.
+
+---
+
+### Step 1 — Database (Docker Postgres)
+
+Run from the **repo root** (`docker-compose.yml` lives here).
+
+```bash
+# Start Postgres (Redis is optional — profile `celery`, not needed for MVP)
+docker compose up -d db
+
+docker compose logs -f db    # troubleshoot
+docker compose stop
+docker compose down
+docker compose down -v       # ⚠ wipes the database volume
+```
+
+Put this in `backend/.env`:
 
 ```env
 DATABASE_URL=postgresql://vaultclub:vaultclub@127.0.0.1:5432/vaultclub
 ```
 
+Then migrate and seed **local dev only**:
+
 ```bash
-cp backend/.env.example backend/.env
-cd backend && python manage.py migrate && python manage.py seed_demo && python manage.py seed_subcategories
+cd backend
+python manage.py migrate
+python manage.py seed_demo
+python manage.py seed_subcategories
 ```
 
-Without Docker and without `DATABASE_URL`, the API uses **SQLite** automatically.
+> **No Docker?** Leave `DATABASE_URL` unset — the API falls back to **SQLite**.
 
-### 2. Backend (local)
+---
+
+### Step 2 — Backend API
 
 ```bash
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py seed_demo          # local dev only — demo parent/coach + schedule
-python manage.py createsuperuser    # optional extra admin user
+python manage.py seed_demo              # local only
+python manage.py createsuperuser        # optional
 python manage.py runserver 0.0.0.0:8000
 ```
 
-API base: `http://127.0.0.1:8000/api/v1/` · Django admin: `http://127.0.0.1:8000/admin/`
+| What | URL |
+|------|-----|
+| API | `http://127.0.0.1:8000/api/v1/` |
+| Django admin | `http://127.0.0.1:8000/admin/` |
 
-**Demo logins** (after `seed_demo` only):
+**Demo logins** (after `seed_demo`):
 
-- Parent: `parent@vaultclub.local` / `parentpass123`
-- Coach: `coach@vaultclub.local` / `coachpass123`
+| Role | Email | Password |
+|------|-------|----------|
+| Parent | `parent@vaultclub.local` | `parentpass123` |
+| Coach | `coach@vaultclub.local` | `coachpass123` |
 
-### 3. Frontend (local)
+---
+
+### Step 3 — Frontend site
 
 ```bash
 cd frontend
-cp .env.local.example .env.local
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open **`http://localhost:3000`**.
 
 ---
 
-## Deploy on Render (`render.yaml`)
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃   ▓▓▓  DEPLOY ON RENDER  ▓▓▓                                                 ┃
+┃        Production API + database + website via render.yaml                   ┃
+┃                                                                              ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
 
-Production API + database are defined in [`render.yaml`](render.yaml). Use a **Blueprint** — do not create separate Postgres/Web Service resources by hand unless you are attaching to an existing database (see below).
+Blueprint spec: [`render.yaml`](render.yaml)
+
+Use **Blueprints → New Blueprint Instance** — do not spin up duplicate Postgres/Web services by hand unless you are attaching an existing database (see [Alternate: existing Postgres](#alternate-existing-render-postgres) below).
+
+---
 
 ### What the blueprint creates
 
-| Resource | Name | Notes |
-|----------|------|--------|
-| PostgreSQL | `vaultclub-db` | `vaultclub` DB/user; `DATABASE_URL` wired into the API |
-| Web service | `vaultclub-api` | `rootDir: backend`, Python 3.12, Gunicorn |
-| Build | `backend/build.sh` | `pip install` → `collectstatic` |
-| Pre-deploy | `preDeployCommand` in `render.yaml` | `migrate` (private-network DB) |
-| Start | `startCommand` in `render.yaml` | `migrate` then Gunicorn (same as `backend/start.sh`) |
-| Health check | `GET /api/v1/health/` | DB + schema ready; Render `healthCheckPath` |
-| Web service | `vaultclub-web` | Next.js (`frontend/`), public site URL |
-| Frontend build | `frontend/build.sh` | Sets `NEXT_PUBLIC_API_URL` from API **public** URL (`RENDER_EXTERNAL_URL`), not private IP |
+| Resource | Name | Role |
+|----------|------|------|
+| PostgreSQL | `vaultclub-db` | `vaultclub` DB/user; `DATABASE_URL` → API |
+| Web (API) | `vaultclub-api` | Django, Gunicorn, `rootDir: backend` |
+| Web (site) | `vaultclub-web` | Next.js, `rootDir: frontend` |
+| Build (API) | `backend/build.sh` | `pip install` → `collectstatic` |
+| Pre-deploy | `render.yaml` | `migrate` (internal DB network) |
+| Start | `render.yaml` / `start.sh` | `migrate` then Gunicorn |
+| Health | `GET /api/v1/health/` | DB + schema ready |
+| Frontend build | `frontend/build.sh` | `NEXT_PUBLIC_API_URL` from API **public** URL |
 
-**Not in the blueprint (yet):** Celery, Redis.
+**Not in blueprint yet:** Celery, Redis (post-MVP).
 
-### Duplicate services on Render (`vaultclub-api` vs `vaultclub-api-4ibp`)
+---
 
-That usually means the stack was created **twice** — e.g. one **Blueprint** run plus an older manual Postgres/Web Service, or two blueprint applies. The `-4ibp` suffix is Render disambiguating a second resource with the same base name.
+### Your URLs after deploy
 
-| Keep (typical) | Often safe to remove |
-|----------------|----------------------|
-| `vaultclub-api` + `vaultclub-db` (names from `render.yaml`) | `vaultclub-api-4ibp` + `vaultclub-db-4ibp` **if** they are not connected to your Git repo and show no recent deploys |
+| Service | Example | Use for |
+|---------|---------|---------|
+| **vaultclub-web** | `https://vaultclub-web.onrender.com` | Public site (home, programmes, shop) |
+| **vaultclub-api** | `https://vaultclub-api.onrender.com` | JSON API + `/admin/` |
+| **vaultclub-db** | *(no public URL)* | Postgres only |
 
-Before deleting anything: open each service → **Settings** → confirm which is linked to **admininforensics/vaultclub** and which has the live URL you use. Delete only the unused pair to avoid double cost and wrong env vars. You do **not** need two APIs and two databases for one app.
+`FRONTEND_URL` and `CORS_ALLOWED_ORIGINS` on the API are wired from **vaultclub-web** when you sync the blueprint.
 
-### Your URLs after Blueprint sync
+---
 
-| Service | Example URL | What it is |
-|---------|-------------|------------|
-| **vaultclub-web** | `https://vaultclub-web.onrender.com` | Public website (home, programs, shop UI) |
-| **vaultclub-api** | `https://vaultclub-api.onrender.com` | JSON API + Django admin (`/admin/`) |
-| **vaultclub-db** | (no public URL) | Postgres only |
+### Deploy checklist
 
-`FRONTEND_URL` and `CORS_ALLOWED_ORIGINS` on the API are set from **vaultclub-web**’s URL when you sync the blueprint (see `render.yaml`).
-
-### Deploy steps
-
-1. Push this repo to GitHub or GitLab.
-2. [Render Dashboard](https://dashboard.render.com/) → **Blueprints** → **New Blueprint Instance** → select the repo.
-3. Confirm the spec from `render.yaml` (`vaultclub-db` + `vaultclub-api`) and apply. Migrations run in **preDeploy** (not during build — Render’s build network cannot resolve internal `dpg-*-a` hostnames).
-4. When deploys finish, open **vaultclub-web** for the site URL and **vaultclub-api** for the API/admin.
-5. **Blueprints** → your instance → **Sync** (after pushing `render.yaml` changes) so **vaultclub-web** is created and API env vars pick up the web URL.
-6. On **vaultclub-api** → **Environment**, set Stripe when needed:
+1. Push repo to GitHub or GitLab.
+2. [Render Dashboard](https://dashboard.render.com/) → **Blueprints** → **New Blueprint Instance** → select repo.
+3. Apply spec (`vaultclub-db` + `vaultclub-api` + `vaultclub-web`).
+4. When green: open **vaultclub-web** (site) and **vaultclub-api** (API/admin).
+5. After `render.yaml` changes: **Blueprints → Sync** so env vars and services stay aligned.
+6. On **vaultclub-api** → **Environment**, add Stripe when needed:
 
    | Variable | Purpose |
    |----------|---------|
-   | `STRIPE_SECRET_KEY` | Payments |
+   | `STRIPE_SECRET_KEY` | Checkout |
    | `STRIPE_WEBHOOK_SECRET` | Webhooks |
    | `ALLOWED_HOSTS` | Optional custom API domain |
 
-   `CORS_ALLOWED_ORIGINS` and `FRONTEND_URL` are wired from **vaultclub-web** in `render.yaml`; redeploy the API if you add the web service later.
+7. Redeploy **vaultclub-web** after API URL changes (`NEXT_PUBLIC_API_URL` is baked at build time).
 
-7. Redeploy **vaultclub-web** after API URL changes (frontend bakes `NEXT_PUBLIC_API_URL` at build time).
+---
 
-### Verify
+### Verify production
 
-- Health: `https://<vaultclub-api-host>/api/v1/health/` → `{"status":"ok"}` (503 = DB or migrations issue).
-- API: `https://<vaultclub-api-host>/api/v1/sports/` → JSON list (may be empty `[]`).
-- Admin: `https://<vaultclub-api-host>/admin/` → styled login (static files via WhiteNoise).
-- Stripe webhook (when enabled): `https://<vaultclub-api-host>/api/v1/webhooks/stripe/`
+| Check | URL | Expected |
+|-------|-----|----------|
+| Health | `https://<api-host>/api/v1/health/` | `{"status":"ok"}` (503 = DB/migrations) |
+| Sports API | `https://<api-host>/api/v1/sports/` | JSON (may be `[]`) |
+| Admin | `https://<api-host>/admin/` | Login page (WhiteNoise static) |
+| Stripe webhook | `https://<api-host>/api/v1/webhooks/stripe/` | When payments enabled |
 
-### Sync `render.yaml` to the live service (required after git changes)
+---
 
-Render **does not always** update an existing web service when you push `render.yaml`. If deploy logs show:
+### Sync render.yaml to the live service
+
+Render **may not** update start commands when you only push git. If deploy logs show **only**:
 
 ```text
 ==> Running 'gunicorn config.wsgi:application --bind 0.0.0.0:$PORT ...'
 ```
 
-(with **no** `migrate` before Gunicorn), the dashboard is still on an **old** start command. Fix it one of these ways:
+(no `migrate` first), fix it:
 
 **A — Blueprint sync (preferred)**  
-**Blueprints** → your instance → **Sync** / **Manual sync** → apply changes → redeploy.
+**Blueprints** → your instance → **Sync** / **Manual sync** → redeploy.
 
-**B — Set commands in the dashboard (fastest)**  
-**vaultclub-api** → **Settings**, then:
+**B — Dashboard (fastest)**  
+**vaultclub-api** → **Settings**:
 
 | Setting | Value |
 |---------|--------|
@@ -150,92 +202,156 @@ Render **does not always** update an existing web service when you push `render.
 | **Start Command** | `python manage.py migrate --no-input && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers ${WEB_CONCURRENCY:-2} --timeout 120` |
 | **Health Check Path** | `/api/v1/health/` |
 
-Save and **Manual Deploy**. The log should show `Running 'python manage.py migrate...` before Gunicorn.
-
-**C — One-off fix in Shell (immediate)**  
+**C — Shell (immediate)**  
 **vaultclub-api** → **Shell**:
 
 ```bash
 python manage.py migrate --no-input
 ```
 
-Then hit `/api/v1/health/` and `/api/v1/sports/` (expect `[]` if no sports yet).
+---
 
 ### Troubleshooting deploy
 
 | Symptom | Likely cause | Fix |
 |---------|----------------|-----|
-| Log shows only `gunicorn ...` at start | Dashboard not synced with `render.yaml` | See **Sync render.yaml** above |
-| Build fails on `migrate`, `dpg-*-a` hostname | Build cannot reach internal DB | Keep `migrate` out of `build.sh`; use preDeploy + start command |
-| Gunicorn up, `/api/v1/sports/` returns **500** | Migrations not applied or DB URL wrong | Run migrate in Shell; open `/api/v1/health/` for `detail`; check **Logs** for `django.request` traceback |
-| Health check never passes | Wrong path or DB not ready | Set health path to `/api/v1/health/` |
+| Log shows only `gunicorn` at start | Old dashboard command | Sync blueprint or set commands above |
+| Build fails on `migrate`, `dpg-*-a` | Build network cannot reach internal DB | Keep `migrate` out of `build.sh`; use preDeploy + start |
+| `/api/v1/sports/` **500** | Migrations missing or wrong `DATABASE_URL` | Shell: `migrate`; check `/api/v1/health/` and Logs |
+| Health check fails | Wrong path or DB down | Path = `/api/v1/health/` |
 
-### Production data (do not run `seed_demo`)
+---
 
-From **vaultclub-api** → **Shell** (or locally with the DB **External** URL in `DATABASE_URL`):
+### Duplicate services (`vaultclub-api` vs `vaultclub-api-4ibp`)
+
+Usually means the stack was created **twice** (Blueprint + manual, or two blueprint runs). The `-4ibp` suffix is Render disambiguating a duplicate name.
+
+| Keep | Often delete |
+|------|----------------|
+| `vaultclub-api` + `vaultclub-db` (from `render.yaml`) | `vaultclub-api-4ibp` + `vaultclub-db-4ibp` if unused and not linked to your repo |
+
+Before deleting: **Settings** on each service → confirm which is tied to **your** Git repo and live URL.
+
+---
+
+### Production data — do not run seed_demo
+
+From **vaultclub-api** → **Shell** (or locally with External `DATABASE_URL`):
 
 ```bash
 python manage.py createsuperuser
 python manage.py generate_occurrences --weeks=8
 ```
 
-Use **`/staff`** on the public site for programmes and schedule (see below), or Django admin. `seed_demo` is for local dev only.
+Use **`/staff`** on the public site or Django admin. **`seed_demo` is local dev only.**
 
-### Club managers (`/staff` on the website)
+---
 
-Managers sign in at `/auth` with role **admin** or **super_admin**, then use **`/staff`** (nav link **Staff**).
+### Club managers (`/staff`)
+
+Managers sign in at **`/auth`** (role **admin** or **super_admin**), then **`/staff`** (nav: **Staff**).
 
 ```bash
-# After colleague has an account (register or createsuperuser):
+# After the colleague has an account:
 python manage.py grant_club_admin colleague@example.com --django-admin
 ```
 
-Flow: **Programmes** → **Activity classes** → **Venues** → **Schedule rules** → **Generate 8 weeks of sessions**. Staff APIs: `/api/v1/staff/*` (JWT required; parents/coaches get 403).
+**Typical setup:** Programmes → Activity classes → Venues → Schedule rules → **Generate 8 weeks of sessions**.
 
-### Frontend on Render (manual, if not using Blueprint sync)
+Staff APIs: `/api/v1/staff/*` (JWT; parents/coaches get 403).
 
-**New Web Service** → connect repo → **Root Directory** `frontend` → **Build** `./build.sh` → **Start** `npm start` → add env `VAULTCLUB_API_PUBLIC_URL` = `https://vaultclub-api.onrender.com` (full public URL, not the private IP from Render’s internal host). Then set API `CORS_ALLOWED_ORIGINS` and `FRONTEND_URL` to this service’s `https://…onrender.com` URL.
+**No “Staff” in the nav / access denied?** Use the public site, not Django `/admin/` only: sign in at **`/auth`** with the **same email** you passed to `grant_club_admin`, then open **`/staff`** (nav link **Staff**). After granting admin, **sign out and sign in again** so your session picks up the new role.
+
+---
+
+### Frontend on Render (manual fallback)
+
+If **vaultclub-web** was not created by blueprint sync:
+
+**New Web Service** → repo → **Root Directory** `frontend` → **Build** `./build.sh` → **Start** `npm start` → env `VAULTCLUB_API_PUBLIC_URL` = `https://vaultclub-api.onrender.com` (public URL, not private IP). Then set API `CORS_ALLOWED_ORIGINS` and `FRONTEND_URL` to the web service URL.
+
+---
 
 ### Alternate: existing Render Postgres
 
-If you already have a Postgres instance and do not want a new `vaultclub-db`:
+<a id="alternate-existing-render-postgres"></a>
 
-1. Deploy or update the blueprint, then on **vaultclub-api** → **Environment** replace `DATABASE_URL` with your **Internal Database URL** (API and DB in the same region).
-2. Redeploy (migrations run on pre-deploy) or run `python manage.py migrate` in the Shell.
+1. On **vaultclub-api** → **Environment**, set `DATABASE_URL` to your **Internal Database URL** (same region).
+2. Redeploy or Shell: `python manage.py migrate --no-input`.
+
+Do **not** run `seed_demo` against production.
+
+---
 
 ### Local machine → Render Postgres only
 
-Use the **External Database URL** from the Render DB dashboard in `backend/.env`, then `migrate` / `createsuperuser` as above. Do **not** run `seed_demo` against production.
+Use the **External Database URL** in `backend/.env`, then `migrate` / `createsuperuser`. No `seed_demo`.
 
 ---
 
-## Environment reference
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃   ▓▓▓  ENVIRONMENT VARIABLES  ▓▓▓                                            ┃
+┃                                                                              ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
 
-| Variable | Local | Render (`render.yaml`) |
-|----------|-------|-------------------------|
-| `DATABASE_URL` | Docker or SQLite (unset) | Auto from `vaultclub-db` |
-| `SECRET_KEY` | `.env` | Auto-generated (`generateValue: true`) |
+| Variable | Local (`backend/.env`) | Render |
+|----------|------------------------|--------|
+| `DATABASE_URL` | Docker URL or unset (SQLite) | Auto from `vaultclub-db` |
+| `SECRET_KEY` | `.env` | Auto-generated |
 | `DEBUG` | `True` | `False` |
 | `PYTHON_VERSION` | — | `3.12.7` |
-| `WEB_CONCURRENCY` | — | `2` (Gunicorn workers) |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | Set in Dashboard after deploy |
-| `FRONTEND_URL` | `http://localhost:3000` | Set in Dashboard after deploy |
-| Stripe keys | optional | Set when using checkout |
-| `ALLOWED_HOSTS` | `localhost,...` | Optional extras; `*.onrender.com` host auto-added |
+| `WEB_CONCURRENCY` | — | `2` |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | From `vaultclub-web` URL (blueprint) |
+| `FRONTEND_URL` | `http://localhost:3000` | From `vaultclub-web` URL (blueprint) |
+| Stripe keys | optional | Dashboard when using checkout |
+| `ALLOWED_HOSTS` | `localhost,...` | Optional; `*.onrender.com` auto-added |
+
+Frontend: `NEXT_PUBLIC_API_URL` in `frontend/.env.local` (local) or set at build via `frontend/build.sh` (Render).
 
 ---
 
-## Roadmap (post-MVP)
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃   ▓▓▓  HOW THE PRODUCT WORKS  ▓▓▓                                            ┃
+┃                                                                              ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
 
-- **Celery + Redis** — expire unpaid booking holds, async notifications (`docker compose --profile celery up -d redis` locally when implemented).
-- REST admin UI, packages/credits, WhatsApp integration.
+| Actor | Flow |
+|-------|------|
+| **Parent** | Register → add children → `/schedule` → book → Stripe → **confirmed** only after webhook |
+| **Manager** | `/staff` (programmes, schedule); Django admin for advanced edits |
+| **Coach** | `/api/v1/coach/classes/`, roster, attendance |
 
-## Key flows
+---
 
-- **Parent**: register → add children → browse `/schedule` → book → Stripe Checkout → booking **confirmed** only after Stripe webhook.
-- **Managers**: `/staff` portal (programmes, schedule) for admin role; Django admin for advanced edits.
-- **Coach**: `GET /api/v1/coach/classes/`, roster and attendance under `/api/v1/coach/classes/...`.
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃   ▓▓▓  ROADMAP (POST-MVP)  ▓▓▓                                               ┃
+┃                                                                              ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
 
-## Docs
+- **Celery + Redis** — payment-hold expiry, notifications (`docker compose --profile celery up -d redis` locally when ready)
+- Packages / credits, WhatsApp, richer reporting
 
-Product specs: `00_PROJECT_BRIEF.md`, `05_BUILD_PLAN_FOR_CURSOR.md`, and related markdown in the repo root.
+---
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                                                                              ┃
+┃   ▓▓▓  MORE DOCS  ▓▓▓                                                        ┃
+┃                                                                              ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
+
+| File | Contents |
+|------|----------|
+| `00_PROJECT_BRIEF.md` | Product vision, roles, MVP scope |
+| `05_BUILD_PLAN_FOR_CURSOR.md` | Implementation phases |
+| Other `*.md` in repo root | API, domain model, frontend spec |

@@ -41,9 +41,17 @@ export function StaffGuard({ children }: { children: React.ReactNode }) {
       <div className="mx-auto max-w-lg px-4 py-16">
         <h1 className="text-2xl font-semibold">Staff access only</h1>
         <p className="mt-2 text-slate-400">
-          This area is for club managers. Ask an existing admin to run{" "}
-          <code className="text-emerald-200">grant_club_admin</code> for your
-          account.
+          This area is for club managers only. You must sign in on the{" "}
+          <strong className="text-slate-200">website</strong> (not Django{" "}
+          <code className="text-slate-300">/admin/</code>) with an account that
+          has role <code className="text-emerald-200">admin</code>. Ask someone
+          to run{" "}
+          <code className="text-emerald-200">grant_club_admin your@email.com</code>{" "}
+          on the API, then sign out and sign in again at{" "}
+          <Link href="/auth?next=/staff" className="text-amber-300 hover:underline">
+            /auth
+          </Link>
+          .
         </p>
         <Link
           href="/"

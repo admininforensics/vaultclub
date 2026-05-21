@@ -22,7 +22,10 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f"No user with email {email}"))
             return
 
-        user.role = User.Role.ADMIN
+        if user.is_superuser:
+            user.role = User.Role.SUPER_ADMIN
+        else:
+            user.role = User.Role.ADMIN
         update_fields = ["role"]
         if options["django_admin"]:
             user.is_staff = True
@@ -31,7 +34,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"{email} is now role={user.role}"
-                + (" with Django admin access." if user.is_staff else ".")
+                f"{email} → role={user.role}, is_staff={user.is_staff}. "
+                "Sign in at the public site /auth (not only Django /admin/)."
             )
         )

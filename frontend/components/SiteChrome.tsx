@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { AuthNavButton } from "@/components/AuthNavButton";
-import { StaffNavLink } from "@/components/StaffNavLink";
 
 export function SiteNav() {
   return (
@@ -28,7 +27,13 @@ export function SiteNav() {
           <Link href="/dashboard" className="hover:text-white">
             My kids
           </Link>
-          <StaffNavLink />
+          <Link
+            href="/staff"
+            className="font-medium text-amber-300 hover:text-amber-200"
+            title="Club managers: programmes and schedule"
+          >
+            Staff
+          </Link>
           <AuthNavButton />
         </nav>
       </div>
