@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
-import { PROGRAM_CATEGORIES, type ProgramCategoryKey } from "@/lib/categories";
+import { PROGRAM_CATEGORIES } from "@/lib/categories";
 
 export type ProgrammeFormValues = {
   category: string;
