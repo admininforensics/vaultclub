@@ -77,26 +77,49 @@ Production API + database are defined in [`render.yaml`](render.yaml). Use a **B
 | Pre-deploy | `preDeployCommand` in `render.yaml` | `migrate` (private-network DB) |
 | Start | `startCommand` in `render.yaml` | `migrate` then Gunicorn (same as `backend/start.sh`) |
 | Health check | `GET /api/v1/health/` | DB + schema ready; Render `healthCheckPath` |
+| Web service | `vaultclub-web` | Next.js (`frontend/`), public site URL |
+| Frontend build | `frontend/build.sh` | Sets `NEXT_PUBLIC_API_URL` from `vaultclub-api` hostname |
 
-**Not in the blueprint (yet):** Next.js frontend, Celery, Redis. Run the frontend locally, on Vercel, or as a separate Render Web Service; point it at the API URL below.
+**Not in the blueprint (yet):** Celery, Redis.
+
+### Duplicate services on Render (`vaultclub-api` vs `vaultclub-api-4ibp`)
+
+That usually means the stack was created **twice** — e.g. one **Blueprint** run plus an older manual Postgres/Web Service, or two blueprint applies. The `-4ibp` suffix is Render disambiguating a second resource with the same base name.
+
+| Keep (typical) | Often safe to remove |
+|----------------|----------------------|
+| `vaultclub-api` + `vaultclub-db` (names from `render.yaml`) | `vaultclub-api-4ibp` + `vaultclub-db-4ibp` **if** they are not connected to your Git repo and show no recent deploys |
+
+Before deleting anything: open each service → **Settings** → confirm which is linked to **admininforensics/vaultclub** and which has the live URL you use. Delete only the unused pair to avoid double cost and wrong env vars. You do **not** need two APIs and two databases for one app.
+
+### Your URLs after Blueprint sync
+
+| Service | Example URL | What it is |
+|---------|-------------|------------|
+| **vaultclub-web** | `https://vaultclub-web.onrender.com` | Public website (home, programs, shop UI) |
+| **vaultclub-api** | `https://vaultclub-api.onrender.com` | JSON API + Django admin (`/admin/`) |
+| **vaultclub-db** | (no public URL) | Postgres only |
+
+`FRONTEND_URL` and `CORS_ALLOWED_ORIGINS` on the API are set from **vaultclub-web**’s URL when you sync the blueprint (see `render.yaml`).
 
 ### Deploy steps
 
 1. Push this repo to GitHub or GitLab.
 2. [Render Dashboard](https://dashboard.render.com/) → **Blueprints** → **New Blueprint Instance** → select the repo.
 3. Confirm the spec from `render.yaml` (`vaultclub-db` + `vaultclub-api`) and apply. Migrations run in **preDeploy** (not during build — Render’s build network cannot resolve internal `dpg-*-a` hostnames).
-4. When **vaultclub-api** is live, note its URL, e.g. `https://vaultclub-api.onrender.com`.
-5. Open **vaultclub-api** → **Environment** and set the variables marked `sync: false` in `render.yaml` (Render prompts for these on first blueprint sync, or you add them after deploy):
+4. When deploys finish, open **vaultclub-web** for the site URL and **vaultclub-api** for the API/admin.
+5. **Blueprints** → your instance → **Sync** (after pushing `render.yaml` changes) so **vaultclub-web** is created and API env vars pick up the web URL.
+6. On **vaultclub-api** → **Environment**, set Stripe when needed:
 
-   | Variable | Example | Purpose |
-   |----------|---------|---------|
-   | `CORS_ALLOWED_ORIGINS` | `https://your-frontend.onrender.com` | Browser API access (comma-separated if multiple) |
-   | `FRONTEND_URL` | same as above | Stripe Checkout return URLs |
-   | `STRIPE_SECRET_KEY` | `sk_live_...` / `sk_test_...` | Payments (optional until checkout) |
-   | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Webhook signature verification |
-   | `ALLOWED_HOSTS` | `api.yourdomain.com` | **Optional** — extra custom domains only; `RENDER_EXTERNAL_HOSTNAME` is added in code |
+   | Variable | Purpose |
+   |----------|---------|
+   | `STRIPE_SECRET_KEY` | Payments |
+   | `STRIPE_WEBHOOK_SECRET` | Webhooks |
+   | `ALLOWED_HOSTS` | Optional custom API domain |
 
-6. Redeploy **vaultclub-api** after changing environment variables.
+   `CORS_ALLOWED_ORIGINS` and `FRONTEND_URL` are wired from **vaultclub-web** in `render.yaml`; redeploy the API if you add the web service later.
+
+7. Redeploy **vaultclub-web** after API URL changes (frontend bakes `NEXT_PUBLIC_API_URL` at build time).
 
 ### Verify
 
@@ -158,15 +181,9 @@ python manage.py generate_occurrences --weeks=8
 
 Use **Django admin** to create sports, venues, coaches, and schedule rules. `seed_demo` is for local dev only.
 
-### Frontend against the deployed API
+### Frontend on Render (manual, if not using Blueprint sync)
 
-Wherever you host Next.js (`frontend/`), set at build time:
-
-```env
-NEXT_PUBLIC_API_URL=https://<vaultclub-api-host>/api/v1
-```
-
-Ensure that origin is listed in `CORS_ALLOWED_ORIGINS` on the API.
+**New Web Service** → connect repo → **Root Directory** `frontend` → **Build** `./build.sh` → **Start** `npm start` → add env `VAULTCLUB_API_HOST` = hostname of **vaultclub-api** (no `https://`). Then set API `CORS_ALLOWED_ORIGINS` and `FRONTEND_URL` to this service’s `https://…onrender.com` URL.
 
 ### Alternate: existing Render Postgres
 

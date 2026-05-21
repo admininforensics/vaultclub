@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthNavButton } from "@/components/AuthNavButton";
 
 export function SiteNav() {
   return (
@@ -26,12 +27,7 @@ export function SiteNav() {
           <Link href="/dashboard" className="hover:text-white">
             My kids
           </Link>
-          <Link
-            href="/auth"
-            className="rounded-full bg-emerald-400 px-4 py-1.5 font-medium text-slate-950 hover:bg-emerald-300"
-          >
-            Sign in
-          </Link>
+          <AuthNavButton />
         </nav>
       </div>
     </header>

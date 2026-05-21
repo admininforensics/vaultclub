@@ -9,11 +9,13 @@ export function getAccessToken(): string | null {
 export function setTokens(access: string, refresh: string) {
   localStorage.setItem("access", access);
   localStorage.setItem("refresh", refresh);
+  window.dispatchEvent(new Event("auth-changed"));
 }
 
 export function clearTokens() {
   localStorage.removeItem("access");
   localStorage.removeItem("refresh");
+  window.dispatchEvent(new Event("auth-changed"));
 }
 
 export type ApiErrorBody = { detail?: string; [k: string]: unknown };
