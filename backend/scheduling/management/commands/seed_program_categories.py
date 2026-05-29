@@ -18,22 +18,28 @@ class Command(BaseCommand):
         venue, _ = Venue.objects.get_or_create(
             name="Main Studio",
             defaults={
+                "city": "Cape Town",
                 "address": "1 Example Road, Cape Town",
                 "room_or_court": "Studio A",
+                "maps_url": "https://maps.google.com/?q=1+Example+Road+Cape+Town",
             },
         )
         music_room, _ = Venue.objects.get_or_create(
             name="Music Room",
             defaults={
+                "city": "Cape Town",
                 "address": "1 Example Road, Cape Town",
                 "room_or_court": "Room B",
+                "maps_url": "https://maps.google.com/?q=1+Example+Road+Cape+Town",
             },
         )
         study_room, _ = Venue.objects.get_or_create(
             name="Study Hub",
             defaults={
+                "city": "Cape Town",
                 "address": "1 Example Road, Cape Town",
                 "room_or_court": "Room C",
+                "maps_url": "https://maps.google.com/?q=1+Example+Road+Cape+Town",
             },
         )
 

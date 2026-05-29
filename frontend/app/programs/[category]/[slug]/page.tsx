@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ProgramDetailExtras } from "@/components/ProgramDetailExtras";
 import { ProgramNav } from "@/components/ProgramNav";
 import { ApiError, apiFetch } from "@/lib/api";
 import {
@@ -33,6 +34,21 @@ type ActivityClass = {
 type ProgramDetail = Program & {
   long_description: string;
   activity_classes: ActivityClass[];
+  coaches: {
+    id: string;
+    name: string;
+    bio: string;
+    photo_url: string;
+  }[];
+  venues: {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    image_url: string;
+    maps_url: string;
+    room_or_court: string;
+  }[];
 };
 
 type Subcategory = {
@@ -147,6 +163,12 @@ export default async function ProgramsSegmentPage({
       {program.long_description && (
         <p className="mt-4 max-w-3xl text-slate-300">{program.long_description}</p>
       )}
+
+      <ProgramDetailExtras
+        sportId={program.id}
+        coaches={program.coaches ?? []}
+        venues={program.venues ?? []}
+      />
 
       <ProgramNav category={category} programmeSlug={slug} active="programs" />
 

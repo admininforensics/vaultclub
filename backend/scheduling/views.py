@@ -62,6 +62,8 @@ class ScheduleListView(APIView):
         start = request.query_params.get("start_date")
         end = request.query_params.get("end_date")
         sport_id = request.query_params.get("sport_id")
+        category = request.query_params.get("category")
+        location = request.query_params.get("location", "").strip()
 
         if not start or not end:
             return Response(
@@ -93,6 +95,15 @@ class ScheduleListView(APIView):
         )
         if sport_id:
             qs = qs.filter(activity_class__sport_id=sport_id)
+        if category:
+            qs = qs.filter(activity_class__sport__category=category)
+        if location:
+            from django.db.models import Q
+
+            qs = qs.filter(
+                Q(venue__city__iexact=location)
+                | Q(venue__address__icontains=location)
+            )
 
         ser = ScheduleOccurrenceSerializer(qs, many=True)
         return Response({"results": ser.data})

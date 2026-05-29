@@ -18,11 +18,13 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, min_length=8)
     whatsapp_number = serializers.CharField(max_length=32, required=False, allow_blank=True)
+    location = serializers.CharField(max_length=255, required=False, allow_blank=True)
 
     def create(self, validated_data):
         whatsapp = validated_data.pop("whatsapp_number", "")
+        location = validated_data.pop("location", "")
         password = validated_data.pop("password")
-        email = validated_data["email"].lower()
+        email = validated_data.pop("email").lower()
         user = User.objects.create_user(
             email=email,
             password=password,
@@ -32,6 +34,7 @@ class RegisterSerializer(serializers.Serializer):
         ParentProfile.objects.create(
             user=user,
             whatsapp_number=whatsapp or "",
+            location=location or "",
         )
         return user
 
@@ -47,6 +50,7 @@ class ParentProfileSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "whatsapp_number",
+            "location",
             "emergency_contact_name",
             "emergency_contact_phone",
             "marketing_opt_in",

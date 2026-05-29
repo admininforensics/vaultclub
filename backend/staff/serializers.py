@@ -125,7 +125,10 @@ class StaffVenueSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "city",
             "address",
+            "image_url",
+            "maps_url",
             "room_or_court",
             "capacity_notes",
             "active",
@@ -139,7 +142,7 @@ class StaffCoachSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Coach
-        fields = ("id", "email", "name", "active")
+        fields = ("id", "email", "name", "bio", "photo_url", "active")
 
     def get_name(self, obj):
         return obj.user.get_full_name() or obj.user.email

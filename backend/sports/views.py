@@ -1,7 +1,8 @@
 from django.db.models import Prefetch
 from rest_framework import permissions, serializers, viewsets
 
-from sports.models import ActivityClass, ProgramSubcategory, Sport
+from scheduling.models import ClassOccurrence, ClassScheduleRule
+from sports.models import ActivityClass, Coach, ProgramSubcategory, Sport, Venue
 
 
 class ProgramSubcategorySerializer(serializers.ModelSerializer):
@@ -48,11 +49,77 @@ class ActivityClassSerializer(serializers.ModelSerializer):
         )
 
 
+class ProgrammeCoachSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Coach
+        fields = ("id", "name", "bio", "photo_url")
+
+    def get_name(self, obj):
+        return obj.user.get_full_name() or obj.user.email
+
+
+class ProgrammeVenueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Venue
+        fields = ("id", "name", "address", "city", "image_url", "maps_url", "room_or_court")
+
+
 class SportDetailSerializer(SportListSerializer):
     activity_classes = ActivityClassSerializer(many=True, read_only=True)
+    coaches = serializers.SerializerMethodField()
+    venues = serializers.SerializerMethodField()
 
     class Meta(SportListSerializer.Meta):
-        fields = SportListSerializer.Meta.fields + ("long_description", "activity_classes")
+        fields = SportListSerializer.Meta.fields + (
+            "long_description",
+            "activity_classes",
+            "coaches",
+            "venues",
+        )
+
+    def get_coaches(self, obj):
+        coach_ids = set(
+            ClassScheduleRule.objects.filter(
+                activity_class__sport=obj,
+                coach__isnull=False,
+                coach__active=True,
+                active=True,
+            ).values_list("coach_id", flat=True)
+        )
+        coach_ids.update(
+            ClassOccurrence.objects.filter(
+                activity_class__sport=obj,
+                coach__isnull=False,
+                coach__active=True,
+                status=ClassOccurrence.Status.SCHEDULED,
+            ).values_list("coach_id", flat=True)
+        )
+        coaches = (
+            Coach.objects.filter(id__in=coach_ids, active=True)
+            .select_related("user")
+            .order_by("user__first_name", "user__last_name")
+        )
+        return ProgrammeCoachSerializer(coaches, many=True).data
+
+    def get_venues(self, obj):
+        venue_ids = set(
+            ClassScheduleRule.objects.filter(
+                activity_class__sport=obj,
+                venue__active=True,
+                active=True,
+            ).values_list("venue_id", flat=True)
+        )
+        venue_ids.update(
+            ClassOccurrence.objects.filter(
+                activity_class__sport=obj,
+                venue__active=True,
+                status=ClassOccurrence.Status.SCHEDULED,
+            ).values_list("venue_id", flat=True)
+        )
+        venues = Venue.objects.filter(id__in=venue_ids, active=True).order_by("name")
+        return ProgrammeVenueSerializer(venues, many=True).data
 
 
 class SportViewSet(viewsets.ReadOnlyModelViewSet):

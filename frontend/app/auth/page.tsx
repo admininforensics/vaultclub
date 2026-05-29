@@ -43,6 +43,7 @@ function AuthPageInner() {
           email: fd.get("email"),
           password: fd.get("password"),
           whatsapp_number: fd.get("whatsapp_number") || "",
+          location: fd.get("location") || "",
         }),
       });
       await onLoginAfterRegister(String(fd.get("email")), String(fd.get("password")));
@@ -186,6 +187,18 @@ function AuthPageInner() {
               placeholder="+27821234567"
               className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 outline-none ring-emerald-400/40 focus:ring-2"
             />
+          </div>
+          <div>
+            <label className="text-sm text-slate-400">Your area</label>
+            <input
+              name="location"
+              required
+              placeholder="e.g. Cape Town, Sandton"
+              className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 outline-none ring-emerald-400/40 focus:ring-2"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              We use this to show sessions at venues near you.
+            </p>
           </div>
           <div>
             <label className="text-sm text-slate-400">Email</label>

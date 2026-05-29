@@ -5,6 +5,8 @@ export const PROGRAM_CATEGORIES = [
     tagline: "Movement, teamwork and confidence on the court or field.",
     href: "/programs/sports",
     accent: "emerald",
+    heroImage:
+      "https://images.unsplash.com/photo-1624526260202-369a5f6e4f4e?auto=format&fit=crop&w=1200&q=80",
   },
   {
     key: "music",
@@ -12,6 +14,8 @@ export const PROGRAM_CATEGORIES = [
     tagline: "Piano, guitar, singing and more — learn at their own pace.",
     href: "/programs/music",
     accent: "violet",
+    heroImage:
+      "https://images.unsplash.com/photo-1514119410344-03be41c955b4?auto=format&fit=crop&w=1200&q=80",
   },
   {
     key: "tutoring",
@@ -19,6 +23,8 @@ export const PROGRAM_CATEGORIES = [
     tagline: "Math, English, Afrikaans and science support in small groups.",
     href: "/programs/tutoring",
     accent: "amber",
+    heroImage:
+      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80",
   },
 ] as const;
 

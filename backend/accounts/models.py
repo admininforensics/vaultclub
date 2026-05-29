@@ -33,6 +33,11 @@ class ParentProfile(models.Model):
         User, on_delete=models.CASCADE, related_name="parent_profile"
     )
     whatsapp_number = models.CharField(max_length=32, blank=True)
+    location = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="City or area used to show nearby sessions.",
+    )
     emergency_contact_name = models.CharField(max_length=255, blank=True)
     emergency_contact_phone = models.CharField(max_length=32, blank=True)
     marketing_opt_in = models.BooleanField(default=False)

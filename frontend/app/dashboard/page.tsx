@@ -8,7 +8,7 @@ import { apiFetch, clearTokens, getAccessToken } from "@/lib/api";
 
 type Me = {
   user: { email: string; first_name: string; last_name: string };
-  parent_profile?: { whatsapp_number: string };
+  parent_profile?: { whatsapp_number: string; location?: string };
 };
 
 type Child = {
@@ -149,7 +149,14 @@ export default function DashboardPage() {
           {bookings.data?.results.length === 0 && (
             <p className="text-sm text-slate-400">
               No bookings yet. Browse the{" "}
-              <Link href="/schedule" className="text-emerald-300 hover:underline">
+              <Link
+                href={
+                  me.data?.parent_profile?.location
+                    ? `/schedule?location=${encodeURIComponent(me.data.parent_profile.location)}`
+                    : "/schedule"
+                }
+                className="text-emerald-300 hover:underline"
+              >
                 schedule
               </Link>
               .

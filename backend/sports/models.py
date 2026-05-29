@@ -80,7 +80,15 @@ class Sport(models.Model):
 class Venue(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
+    city = models.CharField(
+        max_length=255,
+        blank=True,
+        db_index=True,
+        help_text="City or suburb for geo filtering.",
+    )
     address = models.TextField(blank=True)
+    image_url = models.URLField(blank=True)
+    maps_url = models.URLField(blank=True, help_text="Google Maps link for directions.")
     room_or_court = models.CharField(max_length=255, blank=True)
     capacity_notes = models.CharField(max_length=500, blank=True)
     active = models.BooleanField(default=True)
@@ -101,6 +109,7 @@ class Coach(models.Model):
         related_name="coach_profile",
     )
     bio = models.TextField(blank=True)
+    photo_url = models.URLField(blank=True)
     qualifications = models.TextField(blank=True)
     active = models.BooleanField(default=True)
 

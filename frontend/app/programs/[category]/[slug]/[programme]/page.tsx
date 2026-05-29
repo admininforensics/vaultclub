@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProgramDetailExtras } from "@/components/ProgramDetailExtras";
 import { ProgramNav } from "@/components/ProgramNav";
 import { ApiError, apiFetch } from "@/lib/api";
 import {
@@ -30,6 +31,21 @@ type ProgramDetail = {
   min_age: number | null;
   max_age: number | null;
   activity_classes: ActivityClass[];
+  coaches: {
+    id: string;
+    name: string;
+    bio: string;
+    photo_url: string;
+  }[];
+  venues: {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    image_url: string;
+    maps_url: string;
+    room_or_court: string;
+  }[];
 };
 
 export default async function ProgramDetailPage({
@@ -62,6 +78,12 @@ export default async function ProgramDetailPage({
       {program.long_description && (
         <p className="mt-4 max-w-3xl text-slate-300">{program.long_description}</p>
       )}
+
+      <ProgramDetailExtras
+        sportId={program.id}
+        coaches={program.coaches ?? []}
+        venues={program.venues ?? []}
+      />
 
       <ProgramNav
         category={category}

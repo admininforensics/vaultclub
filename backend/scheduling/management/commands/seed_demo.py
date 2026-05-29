@@ -32,8 +32,10 @@ class Command(BaseCommand):
         )
         venue = Venue.objects.create(
             name="Main Studio",
+            city="Cape Town",
             address="1 Example Road, Cape Town",
             room_or_court="Studio A",
+            maps_url="https://maps.google.com/?q=1+Example+Road+Cape+Town",
         )
 
         coach_user = User.objects.create_user(
@@ -43,7 +45,11 @@ class Command(BaseCommand):
             last_name="Coach",
             role=User.Role.COACH,
         )
-        coach = Coach.objects.create(user=coach_user, bio="Black belt instructor.")
+        coach = Coach.objects.create(
+            user=coach_user,
+            bio="Black belt instructor.",
+            photo_url="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=400&q=80",
+        )
 
         activity = ActivityClass.objects.create(
             sport=sport,

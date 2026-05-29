@@ -36,12 +36,6 @@ export default function HomePage() {
             >
               Browse programmes
             </Link>
-            <Link
-              href="/schedule"
-              className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white hover:border-white/40"
-            >
-              View calendar
-            </Link>
           </div>
         </div>
       </section>
@@ -53,10 +47,17 @@ export default function HomePage() {
             <Link
               key={c.key}
               href={c.href}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-emerald-400/40"
+              className="group relative min-h-[220px] overflow-hidden rounded-2xl border border-white/10 transition hover:border-emerald-400/40"
             >
-              <h3 className="text-lg font-semibold">{c.label}</h3>
-              <p className="mt-2 text-sm text-slate-400">{c.tagline}</p>
+              <div
+                className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105"
+                style={{ backgroundImage: `url(${c.heroImage})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/20" />
+              <div className="relative flex h-full min-h-[220px] flex-col justify-end p-6">
+                <h3 className="text-lg font-semibold">{c.label}</h3>
+                <p className="mt-2 text-sm text-slate-300">{c.tagline}</p>
+              </div>
             </Link>
           ))}
         </div>

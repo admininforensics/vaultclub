@@ -37,6 +37,15 @@ export default async function ProgramsCategoryPage({
 
       <ProgramNav category={category} active="programs" />
 
+      <div className="mt-8">
+        <Link
+          href={`/schedule?category=${category}`}
+          className="inline-flex rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white hover:border-white/40"
+        >
+          View calendar
+        </Link>
+      </div>
+
       <div className="mt-6 flex flex-wrap gap-3 text-sm">
         <Link href="/programs/sports" className="text-slate-400 hover:text-white">
           Sports
